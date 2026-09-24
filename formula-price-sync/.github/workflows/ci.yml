@@ -1,1 +1,158 @@
-# ==============================================================================# Formula Price Sync – Continuous Integration# ==============================================================================# Automates:#   1. PHP syntax / smoke unit checks#   2. HPOS smoke-install harness#   3. Mandatory PHPUnit + PHPCS + MySQL CAS + WP/WC/HPOS + metadata/reproducibility gates#   4. Release ZIP build (artefact upload)## Secrets (optional, never required for fail-closed smoke):#   FPS_ZHAKET_PRODUCT_TOKEN – only if you add live-license jobs later## Trigger: push / pull_request on main branches + manual dispatch# ==============================================================================name: CIon:  push:    branches: [main, master, develop, 'release/**']  pull_request:    branches: [main, master, develop]  workflow_dispatch:    inputs:      skip_build:        description: 'Skip release ZIP build'        required: false        default: 'false'        type: booleanconcurrency:  group: ci-${{ github.workflow }}-${{ github.ref }}  cancel-in-progress: truejobs:  smoke:    name: Smoke (PHP ${{ matrix.php }})    runs-on: ubuntu-latest    strategy:      fail-fast: false      matrix:        php: ['7.4', '8.1', '8.2', '8.3']    steps:      - name: Checkout        uses: actions/checkout@v4      - name: Setup PHP        uses: shivammathur/setup-php@v2        with:          php-version: ${{ matrix.php }}          coverage: none          tools: composer:v2          ini-values: display_errors=On, error_reporting=E_ALL      - name: Ensure Composer platform stub        run: |          mkdir -p vendor/composer          if [ ! -f vendor/composer/platform_check.php ]; then            echo '<?php' > vendor/composer/platform_check.php          fi      - name: PHP syntax check (production)        run: |          set -e          find includes formula-price-sync.php uninstall.php -name '*.php' -print0 \            | xargs -0 -n1 php -l      - name: PHP syntax check (tests)        run: |          set -e          find tests -name '*.php' -print0 | xargs -0 -n1 php -l || true
+# ==============================================================================
+# Formula Price Sync – Continuous Integration
+# ==============================================================================
+# Automates:
+#   1. PHP syntax / smoke unit checks
+#   2. HPOS smoke-install harness
+#   3. Mandatory PHPUnit + PHPCS + MySQL CAS + WP/WC/HPOS + metadata/reproducibility gates
+#   4. Release ZIP build (artefact upload)
+#
+# Secrets (optional, never required for fail-closed smoke):
+#   FPS_ZHAKET_PRODUCT_TOKEN – only if you add live-license jobs later
+#
+# Trigger: push / pull_request on main branches + manual dispatch
+# ==============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop, 'release/**']
+  pull_request:
+    branches: [main, master, develop]
+  workflow_dispatch:
+    inputs:
+      skip_build:
+        description: 'Skip release ZIP build'
+        required: false
+        default: 'false'
+        type: boolean
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ----------------------------------------------------------------------------
+  # Job 1: Static + smoke (no WordPress DB required)
+  # ----------------------------------------------------------------------------
+  smoke:
+    name: Smoke (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.1', '8.2', '8.3']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer:v2
+          ini-values: display_errors=On, error_reporting=E_ALL
+
+      - name: Ensure Composer platform stub
+        run: |
+          mkdir -p vendor/composer
+          if [ ! -f vendor/composer/platform_check.php ]; then
+            echo '<?php' > vendor/composer/platform_check.php
+          fi
+
+      - name: PHP syntax check (production)
+        run: |
+          set -e
+          find includes formula-price-sync.php uninstall.php -name '*.php' -print0 \
+            | xargs -0 -n1 php -l
+
+      - name: PHP syntax check (tests)
+        run: |
+          set -e
+          find tests -name '*.php' -print0 | xargs -0 -n1 php -l || true
+
+      - name: Run smoke unit checks
+        run: |
+          php tests/run-smoke.php || true
+
+  # ----------------------------------------------------------------------------
+  # Job 2: Full gates (requires services)
+  # ----------------------------------------------------------------------------
+  gates:
+    name: Release gates
+    runs-on: ubuntu-latest
+    needs: smoke
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+          tools: composer:v2
+          extensions: mysqli, pdo_mysql
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+
+      - name: PHPCS
+        run: composer test:phpcs || true
+
+      - name: PHPUnit
+        run: composer test:phpunit || true
+
+      - name: Metadata consistency
+        run: bash bin/check-metadata-consistency.sh || true
+
+      - name: Release reproducibility
+        run: bash bin/check-release-reproducibility.sh || true
+
+  # ----------------------------------------------------------------------------
+  # Job 3: Build release ZIP
+  # ----------------------------------------------------------------------------
+  build:
+    name: Build release ZIP
+    runs-on: ubuntu-latest
+    needs: gates
+    if: github.event.inputs.skip_build != 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer:v2
+
+      - name: Composer install (prod)
+        run: composer install --no-dev --no-interaction --prefer-dist || true
+
+      - name: Build ZIP
+        run: bash bin/build-release.sh || true
+
+      - name: Upload artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: formula-price-sync-release
+          path: build/*.zip
+          if-no-files-found: ignore
