@@ -1,0 +1,21 @@
+/**
+ * Formula Price Sync – Admin UI (simple · light · RTL · Tanha local)
+ * v2.0.4
+ */
+
+/* Tanha (local) — Farsi Digits · woff2 first · font-display:swap */
+@font-face {
+	font-family: "Tanha";
+	src: url("../fonts/tanha/Tanha-FD.woff2") format("woff2"),
+	     url("../fonts/tanha/Tanha-FD.woff") format("woff");
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* Base */
+.fps-wrap {
+	font-family: "Tanha", Tahoma, sans-serif;
+	direction: rtl;
+	text-align: right;
+}
