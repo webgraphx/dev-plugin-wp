@@ -1,0 +1,5 @@
+# Copyright (C) Formula Price Sync
+msgid ""
+msgstr ""
+"Project-Id-Version: Formula Price Sync 2.0.0\n"
+"Language: \n"

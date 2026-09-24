@@ -1,0 +1,4 @@
+# Persian translation for Formula Price Sync
+msgid ""
+msgstr ""
+"Language: fa_IR\n"
