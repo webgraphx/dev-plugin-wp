@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<ruleset name="FPS">
+	<description>PHPCS rules for Formula Price Sync</description>
+	<file>.</file>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/tests/*</exclude-pattern>
+	<rule ref="WordPress"/>
+</ruleset>
