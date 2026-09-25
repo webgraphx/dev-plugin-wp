@@ -1,6 +1,6 @@
 === Formula Price Sync / طلا ارز پرو ===
 Contributors: webgraphx
-Tags: woocommerce, pricing, gold, currency, iran, formula
+Tags: woocommerce, price, gold, currency, formula, iran, rastchin, zhaket
 Requires at least: 5.8
 Tested up to: 6.6
 Requires PHP: 7.4
@@ -8,38 +8,34 @@ Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Automated product pricing by gold & currency formulas (Iranian guild rules). Supports HPOS and Action Scheduler.
+قیمت‌گذاری خودکار محصولات ووکامرس بر اساس نرخ ارز، طلا و فرمول‌های سفارشی.
 
 == Description ==
 
-Formula Price Sync (طلا ارز پرو) lets you define pricing formulas based on live gold and currency rates from Iranian providers (TGJU, Navasan, Nobitex, Manual). Prices are recalculated automatically via cron or Action Scheduler.
+Formula Price Sync (طلا ارز پرو) افزونه‌ای حرفه‌ای برای همگام‌سازی خودکار قیمت محصولات ووکامرس است.
 
-Features:
-* Multiple rate providers with circuit breaker and rate limiting
-* HPOS compatible
-* Action Scheduler queue for large catalogs
-* License guard for marketplace distribution (Zhaket / Rastchin)
-* Full audit log and system health page
-* Persian (Jalali) date support and number-to-words helpers
+* منابع نرخ: Navasan، TGJU، Nobitex، Manual
+* فرمول طلا ۱۸ عیار و فرمول‌های سفارشی
+* محصولات ساده و متغیر
+* Circuit Breaker و لاگ کامل
+* سازگار با HPOS
+* لایسنس راست‌چین و ژاکت
 
 == Installation ==
 
-1. Upload the plugin files to the `/wp-content/plugins/formula-price-sync` directory, or install through the WordPress plugins screen.
-2. Activate the plugin through the 'Plugins' screen in WordPress.
-3. Go to Formula Price Sync settings and configure your rate providers and formulas.
-
-== Frequently Asked Questions ==
-
-= Does it support HPOS? =
-Yes, fully tested with WooCommerce High-Performance Order Storage.
-
-= Which rate providers are supported? =
-TGJU, Navasan, Nobitex and a Manual provider.
+1. فایل zip را بارگذاری و نصب کنید.
+2. افزونه را فعال کنید.
+3. از منوی Formula Price Sync تنظیمات را انجام دهید.
 
 == Changelog ==
 
 = 2.0.0 =
-* Complete redevelopment with hardening (R14–R17)
-* License Guard + marketplace adapters
-* Action Scheduler integration
-* Improved admin UI and health checks
+* بازنویسی کامل معماری
+* پشتیبانی HPOS
+* تست‌های واحد و یکپارچگی
+* System Health و History
+
+== Upgrade Notice ==
+
+= 2.0.0 =
+نسخه major — قبل از ارتقا بک‌آپ بگیرید.
