@@ -2,6 +2,7 @@
   "name": "formula-price-sync",
   "version": "2.0.0",
   "private": true,
+  "description": "E2E tests for Formula Price Sync",
   "scripts": {
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
